@@ -9,10 +9,10 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Your name here" />
+<meta name="author" content="Alex Tan" />
 
 
-<title>I have the best titles</title>
+<title>Multivariate Analysis of York Region’s Broader Public Sector Energy Consumption Efficiency across Annual Time Series</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -296,77 +296,56 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">I have the best titles</h1>
-<h3 class="subtitle"><em>Subtitle here if desired</em></h3>
-<h4 class="author"><em>Your name here</em></h4>
+<h1 class="title toc-ignore">Multivariate Analysis of York Region’s Broader Public Sector Energy Consumption Efficiency across Annual Time Series</h1>
+<h4 class="author"><em>Alex Tan</em></h4>
 
 </div>
 
 
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>My really awesome and complete introduction will go here. Wheeeee….</p>
-<blockquote>
-<p>I know words. I have the best words. ~ Donald Trump Thump! Thumb! Thump!</p>
-</blockquote>
+<p>Increasingly, cities utilize about 70% of comprehensive energy supply and planned proposals will house nearly 60% of world’s population by 2030 (Seto and Dhakal 2014). Local government buildings provide initial testbeds for any policy initiatives of public sector and private sector before city-wide scale implementation.</p>
+<p>Spatially, the York Region of Toronto and Buffalo-Niagara Falls Metropolitan Area have approximately the same size that qualifies as a large settlement area with a humid continental climate. Several policy initiatives on public buildings has been implemented on an ongoing basis or planned and a broad spectrum mapping are visualized.</p>
+<p>Temporally, the data sets are provided in an open data license by the York Region municipal with an annual time series. The project will intend to visualize changes across time and conjecture predictive analytics.</p>
+<p>As public sites provide supporting activities to sustain the function of a city, the project will query for efficiency in energy consumption through site clustering in broader public sector of York Region. The project will be objective on clustering effect and its’ efficiency on energy consumption and benchmarked compared to municipal government guideline.</p>
 </div>
-<div id="materials-and-methods" class="section level1">
-<h1>Materials and methods</h1>
-<p>Narrative and most code will go here. Describe what you are doing and show how to do it (with code).</p>
-<p>You can do bullets like this:</p>
-<ul>
-<li>The first most important thing</li>
-<li>The second most important thing</li>
-<li>The third most important thing</li>
-</ul>
-<p>You can do numbers like this:</p>
-<ol style="list-style-type: decimal">
-<li>The first most important thing</li>
-<li>The second most important thing</li>
-<li>The third most important thing</li>
-</ol>
-<p>See <a href="http://rmarkdown.rstudio.com/" class="uri">http://rmarkdown.rstudio.com/</a> for all the amazing things you can do.</p>
-<p>Here’s my first code chunk.</p>
-<pre class="r"><code>1+2</code></pre>
-<pre><code>## [1] 3</code></pre>
-<p>Load any required packages in a code chunk (you may need to install some packages):</p>
+<div id="visualization-of-addresses-in-york-regions-municipal-buildings" class="section level1">
+<h1>Visualization of Addresses in York Region’s Municipal Buildings</h1>
 <pre class="r"><code>library(dplyr)
 library(ggplot2)
 library(maps)
+library(ggmap)
 library(spocc)
-knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling</code></pre>
-<p>We are going to use the <code>occ()</code> function to download <em>occurrence</em> records for the American robin (<em>Turdus migratorius</em>) from the <a href="gbif.org">Global Biodiversity Information Facility</a>.</p>
-<p><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Turdus-migratorius-002.jpg" alt="alt text" width="200"> <small><small><small>Licensed under CC BY-SA 3.0 via <a href="https://commons.wikimedia.org/wiki/File:Turdus-migratorius-002.jpg#/media/File:Turdus-migratorius-002.jpg">Wikimedia Commons</a></small></small></small></p>
-<pre class="r"><code>## define which species to query
-sp=&#39;Turdus migratorius&#39;
 
-## run the query and convert to data.frame()
-d = occ(query=sp, from=&#39;ebird&#39;,limit = 100) %&gt;% occ2df()</code></pre>
-<p>This can take a few seconds.</p>
-<pre class="r"><code># Load coastline
+
+
+# Load conceptual map
 map=map_data(&quot;world&quot;)
 
-ggplot(d,aes(x=longitude,y=latitude))+
+d1=geocode(&quot;120 Mulock Dr, Newmarket&quot;)
+d2=geocode(&quot;3525 Baseline Road, Georgina&quot;)
+d=rbind(d1,d2)
+ggplot(d,aes(x=lon,y=lat))+
   geom_polygon(aes(x=long,y=lat,group=group),data=map)+
   geom_point(col=&quot;red&quot;)+
   coord_equal()</code></pre>
-<div class="figure">
-<img src="index_files/figure-html/unnamed-chunk-4-1.png" alt="Map illustrating the known occurrence locations" width="576" />
-<p class="caption">
-Map illustrating the known occurrence locations
-</p>
+<p><img src="index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
 </div>
+<div id="temporal-changes" class="section level1">
+<h1>Temporal Changes</h1>
+<p>The changes across the annual time-series will be shown here.</p>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
-<p>Show tables, plots, etc. and describe them.</p>
+<p>Some analytics along with the benchmark comparisons will be shown here at Second Draft.</p>
 </div>
 <div id="conclusions" class="section level1">
 <h1>Conclusions</h1>
-<p>What have you learned? Are there any broader implications?</p>
+<p>Broader Implication will be in Second Draft.</p>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>
+<p>Seto, K., &amp; Dhakal , S. (2014, ). Human Settlements, Infrastructure, and Spatial Planning. Human Settlements, Infrastructure, and Spatial Planning. Retrieved 2017, from <a href="http://www.ipcc.ch/pdf/assessment-report/ar5/wg3/ipcc_wg3_ar5_chapter12.pdf" class="uri">http://www.ipcc.ch/pdf/assessment-report/ar5/wg3/ipcc_wg3_ar5_chapter12.pdf</a></p>
 </div>
 
 <!-- give the footer some space -->
