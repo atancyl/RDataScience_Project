@@ -20,7 +20,7 @@ As public sites provide supporting activities to sustain the function of a city,
 
 
 # Visualization of Addresses in York Region's Municipal Buildings
-
+Conceptual Visualization. The Second Draft will have better visualizations as I am working on the geocoding.
 ```{r, message=F, warning=F}
 library(dplyr)
 library(ggplot2)
