@@ -2,6 +2,9 @@
 title: Multivariate Analysis of York Region's Broader Public Sector Energy Consumption
   Efficiency across Annual Time Series
 author: "Alex Tan"
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 # Introduction
@@ -29,7 +32,7 @@ library(spocc)
 
 # Load conceptual map
 map=map_data("world")
-
+read.csv('data/2014_BPS_Reporting.csv')
 d1=geocode("120 Mulock Dr, Newmarket")
 d2=geocode("3525 Baseline Road, Georgina")
 d=rbind(d1,d2)
