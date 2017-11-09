@@ -19,7 +19,7 @@ As public sites provide supporting activities to sustain the function of a city,
 
 
 
-# Visualization of Addresses in York Region's Municipal Buildings
+# Visualization
 Conceptual Visualization. The Second Draft will have better visualizations as I am working on the geocoding.
 ```{r, message=F, warning=F}
 library(dplyr)
@@ -27,19 +27,38 @@ library(ggplot2)
 library(maps)
 library(ggmap)
 library(spocc)
-
-
-
+library(maps)
+library(rgdal)
+library(reshape)
 # Load conceptual map
-map=map_data("world")
-read.csv('data/2014_BPS_Reporting.csv')
-d1=geocode("120 Mulock Dr, Newmarket")
-d2=geocode("3525 Baseline Road, Georgina")
-d=rbind(d1,d2)
-ggplot(d,aes(x=lon,y=lat))+
-  geom_polygon(aes(x=long,y=lat,group=group),data=map)+
+x=read.csv('data/2014_BPS_Reporting.csv')
+x <- as.data.frame.matrix(x)
+x$Address <- as.character(x$Address)
+map = readOGR(dsn=path.expand("data/York.shp"))
+head(x, 2)
+
+#still trying to geocode coordinates in batch
+#geocode test
+coord <- matrix(ncol=3, nrow=86,byrow = T)
+colnames(coord)<- c("id","long","lat")
+coord[,1] <- c(1:86)
+a <- x[,"Address"]
+for(i in 1:86){
+  tmp <- geocode(a[i])
+  coord[i,2] <- tmp$lon
+  coord[i,3] <-  tmp$lat
+}
+tidy.coord <- na.omit(coord)
+tidy.coord <- as.data.frame(tidy.coord)
+write.csv(tidy.coord,file = "data/coord.csv")
+fortify(tidy.coord)
+#conceptual visualization cluster
+
+ggplot(tidy.coord,aes(x=long,y=lat))+
+  geom_polygon(aes(x=long,y=lat,group=group),data=map,color="grey30")+
   geom_point(col="red")+
   coord_equal()
+
 ```
 
 # Temporal Changes
