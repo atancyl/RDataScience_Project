@@ -12,7 +12,7 @@
 <meta name="author" content="Alex Tan" />
 
 
-<title>Multivariate Analysis of York Region’s Broader Public Sector Energy Consumption Efficiency across Annual Time Series</title>
+<title>Shrinking Cities’ Population Estimation: Night Lights as an Intermediary</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -296,7 +296,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Multivariate Analysis of York Region’s Broader Public Sector Energy Consumption Efficiency across Annual Time Series</h1>
+<h1 class="title toc-ignore">Shrinking Cities’ Population Estimation: Night Lights as an Intermediary</h1>
 <h4 class="author"><em>Alex Tan</em></h4>
 
 </div>
@@ -304,48 +304,308 @@ div.tocify {
 
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>Increasingly, cities utilize about 70% of comprehensive energy supply and planned proposals will house nearly 60% of world’s population by 2030 (Seto and Dhakal 2014). Local government buildings provide initial testbeds for any policy initiatives of public sector and private sector before city-wide scale implementation.</p>
-<p>Spatially, the York Region of Toronto and Buffalo-Niagara Falls Metropolitan Area have approximately the same size that qualifies as a large settlement area with a humid continental climate. Several policy initiatives on public buildings has been implemented on an ongoing basis or planned and a broad spectrum mapping are visualized.</p>
-<p>Temporally, the data sets are provided in an open data license by the York Region municipal with an annual time series. The project will intend to visualize changes across time and conjecture predictive analytics.</p>
-<p>As public sites provide supporting activities to sustain the function of a city, the project will query for efficiency in energy consumption through site clustering in broader public sector of York Region. The project will be objective on clustering effect and its’ efficiency on energy consumption and benchmarked compared to municipal government guideline.</p>
+<p>Night Lights data (Yi et al., 2014) has determined urbanization processes and its’ ability to track urban sprawl expansion, the urban environment, and its’ level of activity. While it may detect urban expansion, but is it an acceptable fit for shrinking cities?</p>
+<p>The NOAA’s National Centers for Environmental Information (NCEI) supports DoD’s data archival for the DMSP sensors, which the U.S. Air Force Global Weather Central sends DMSP data to NCEI. Archival operation was established in March of 1992, and began receiving data on a daily basis in September of 1992.</p>
+<p>The Defense Meteorological Satellite Program is a collection of two satellites that are solar coordinated, which one satellite is in a dawn - dusk orbit, and the second in a day - night orbit. The DMSP Operational Linescan System (OLS) data sets are utilized for this project. As stated on NOAA’s page,</p>
+<p>“The wide swath widths provide for global coverage four times a day: dawn, day, dusk, night.”</p>
+<p>“With sunlight eliminated, the light intensification makes it possible to detect city lights, gas flares, and fires.”</p>
+<p>The population of a city determines its existence with its inhabitant’s activity (lights usage) measurement a good way to detect its’ vibrancy or inactivity. Therefore, Rust Belt cities offer intriguing insights of shrinking cities and its population.</p>
 </div>
-<div id="visualization-of-addresses-in-york-regions-municipal-buildings" class="section level1">
-<h1>Visualization of Addresses in York Region’s Municipal Buildings</h1>
-<pre class="r"><code>library(dplyr)
-library(ggplot2)
-library(maps)
-library(ggmap)
-library(spocc)
+<div id="data-pulling" class="section level1">
+<h1>Data Pulling</h1>
+<p>The data (Ngdc.noaa.gov, 2017) set obtained for the project can be obtained as below: <a href="https://www.ngdc.noaa.gov/eog/viirs/download_dnb_composites.html" class="uri">https://www.ngdc.noaa.gov/eog/viirs/download_dnb_composites.html</a></p>
+<p>Disclaimer: File Size is VERY HUGE! It is highly recommended that codes be ran locally!</p>
+<p>As for the focus of the project, the global cloud free VIIRS Cloud Mask product is selected (VCMCFG). The project will utilize the data for the month of September 2014 and September 2016. Reasons for selecting the data sets: i) Allowing an even time interval ii) Allowing changes to be more apparent biennially</p>
+<p>The objective of the codes below is to load GeoTIFFs from NOAA (geo-referenced raster file) and MSA shape files from the US Census Bureau. The spatial projection coordinates for both data sets will be synchronized using World Geodetic System 1984 (WGS84) datum.</p>
+<p>The codes below, saved as data pull.R script, will pull the data from the relevant directory once data sets have been downloaded:</p>
+<pre class="r"><code>#Preliminary Libraries
+library(rgdal)
 
+#Set TIF images
+##################################################################################################################
+##Obtain a list of TIF files, load in the first file in list
 
+### Year 2014 TIF
+rast2014=raster(paste(&quot;img/092014avg_rade9.tif&quot;,sep=&quot;&quot;))
 
-# Load conceptual map
-map=map_data(&quot;world&quot;)
+### Year 2016 TIF
+rast2016=raster(paste(&quot;img/092016avg_rade9.tif&quot;,sep=&quot;&quot;))
+  
+##Specify WGS84 as the projection of the raster file
+wgs84=&quot;+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0&quot;
+projection(rast2014)=CRS(wgs84)
+projection(rast2016)=CRS(wgs84)
+###################################################################################################################
 
-d1=geocode(&quot;120 Mulock Dr, Newmarket&quot;)
-d2=geocode(&quot;3525 Baseline Road, Georgina&quot;)
-d=rbind(d1,d2)
-ggplot(d,aes(x=lon,y=lat))+
-  geom_polygon(aes(x=long,y=lat,group=group),data=map)+
-  geom_point(col=&quot;red&quot;)+
-  coord_equal()</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+#Set Census Data
+####################################################################################################################
+##Setting MSA Shapefile
+msa2014=readOGR(&quot;censusdata/cb_2014_us_cbsa_20m.shp&quot;)
+msa2016=readOGR(&quot;censusdata/cb_2016_us_cbsa_20m.shp&quot;)
+
+##Synchronizing projection with TIF Files
+projection(msa2014)=CRS(wgs84)
+projection(msa2016)=CRS(wgs84)
+
+##Convert MSA names to char
+msa_pop2014=read.csv(&quot;censusdata/cbsa-est2014-alldata.csv&quot;)
+msa_pop2014=msa_pop2014[msa_pop2014$LSAD==&quot;Metropolitan Statistical Area&quot;,]
+msa_pop2014=msa_pop2014[order(msa_pop2014$POPESTIMATE2014),]
+msa_pop2014$NAME=as.character(msa_pop2014$NAME)
+
+msa_pop2016=read.csv(&quot;censusdata/cbsa-est2016-alldata.csv&quot;)
+msa_pop2016=msa_pop2016[msa_pop2016$LSAD==&quot;Metropolitan Statistical Area&quot;,]
+msa_pop2016=msa_pop2016[order(msa_pop2016$POPESTIMATE2016),]
+msa_pop2016$NAME=as.character(msa_pop2016$NAME)</code></pre>
 </div>
-<div id="temporal-changes" class="section level1">
-<h1>Temporal Changes</h1>
-<p>The changes across the annual time-series will be shown here.</p>
+<div id="data-wrangling" class="section level1">
+<h1>Data Wrangling</h1>
+<p>As for tidying the data set, the project will utilize the libraries as commented in the codes. The data will be pulled from a script file as mentioned above.</p>
+<p>The project has chosen five cities for illustration. Namely, they are, Chicago, Detroit, Flint, MI, Cleveland, OH, and Buffalo.</p>
+<pre class="r"><code>#Load libraries
+{
+  library(doParallel)
+  library(foreach)
+  library(raster)
+  library(sp)
+  library(rgdal)
+  library(ggmap)
+  library(ggplot2)
+}
+#####################################################################################
+
+#Data
+source(&quot;code/datapull.R&quot;)
+#####################################################################################
+
+#Selecting Cities
+cities=c(&quot;Chicago, IL&quot;, &quot;Detroit, MI&quot;, &quot;Flint, MI&quot;, &quot;Cleveland, OH&quot;, &quot;Buffalo, NY&quot;)
+
+##Chart Display Parameters
+par(mai=c(0,0,0,0),mfrow = c(3,2),bg=&#39;#001a4d&#39;, bty=&#39;n&#39;)
+######################################################################################</code></pre>
+</div>
+<div id="visualization" class="section level1">
+<h1>Visualization</h1>
+<p>The visualization process will use a loop function for both years to geocode and will be assigned with relevant variables.</p>
+<p>The loop function works by utilizing “foreach”&quot; library. It will run the cities that were selected above.</p>
+<p>Firstly in the loop function, the cities will be geocoded and assigned temporarily before merged.</p>
+<p>Secondly, the bounding box will be established before being merged with the satellite image.</p>
+<p>Thirdly, the referenced codes (Chen, 2017) will visually inspect rasters by color coding raster values on a map using k-means clustering algorithm.</p>
+<p>Lastly, the sampled radiance level will be plotted to reveal visually of the night lights in relevant cities.</p>
+<p>The geocoded cities coordinates are also saved to prevent frequent queries through the ggpmap library as Google’s Term of Policies limits queries.</p>
+<div class="figure">
+<img src="plots/Year2014.png" alt="2014" />
+<p class="caption">2014</p>
+</div>
+<div class="figure">
+<img src="plots/Year2016.png" alt="2016" />
+<p class="caption">2016</p>
+</div>
+<pre class="r"><code>#Visualizing Cities for Year 2016
+coords2016=data.frame()
+
+##Loop
+for(i in 1:length(cities)){
+  
+  ##Coords
+  temp_coord=geocode(override_limit = TRUE, cities[i], source = c(&quot;google&quot;, &quot;dsk&quot;), key = &quot;AIzaSyBRzBKmnnK9vwKDrqSBR6olexFThQNWU-8&quot;)
+  coords2016=rbind(coords2016,temp_coord)
+  
+  #Bounding Box
+  boundbox=extent(temp_coord$lon - 1, temp_coord$lon + 1,
+              temp_coord$lat - 0.25, temp_coord$lat + 0.25)
+  
+  #Pasting Boundbox to Raster
+  rc=crop(rast2016, boundbox)    
+  
+  ##Rescale brackets
+  sampled=as.vector(rc)
+  clusters=15
+  clust=kmeans(sampled,clusters)$cluster
+  combined=as.data.frame(cbind(sampled,clust))
+  brk=sort(aggregate(combined[,1], list(combined[,2]), max)[,2])
+  
+  #Plots
+  plot(rc, breaks=brk, col=colorRampPalette(c(&quot;#001a4d&quot;,&quot;#0066FF&quot;, &quot;yellow&quot;))(clusters), 
+       legend=F,yaxt=&#39;n&#39;,xaxt=&#39;n&#39;,frame = F, asp=1.5)
+  text(temp_coord$lon ,temp_coord$lat + 0.15,
+       substr(cities[i],1,regexpr(&quot;,&quot;,cities[i])-1), 
+       col=&quot;white&quot;, cex=1.25)
+  
+  rm(combined)
+}
+
+#Saving Geocodes  
+write.csv(coords2016,file =&quot;data/coords2016.csv&quot; )
+#########################################################################################
+#Visualizing Cities for Year 2014
+########################################################################################
+coords2014=data.frame()
+
+##Loop
+for(i in 1:length(cities)){
+  
+  ##Coords
+  temp_coord=geocode(override_limit = TRUE, cities[i], source = c(&quot;google&quot;, &quot;dsk&quot;), key = &quot;AIzaSyBlAs3JB7y49JPpUWMQvZGdie2ZqWNmZss&quot;)
+  coords2014=rbind(coords2014,temp_coord)
+  
+  #Bounding Box
+  boundbox=extent(temp_coord$lon - 1, temp_coord$lon + 1,
+                  temp_coord$lat - 0.25, temp_coord$lat + 0.25)
+  
+  #Pasting Boundbox to Raster
+  rc=crop(rast2014, boundbox)    
+  
+  ##Rescale brackets
+  sampled=as.vector(rc)
+  clusters=15
+  clust=kmeans(sampled,clusters)$cluster
+  combined=as.data.frame(cbind(sampled,clust))
+  brk=sort(aggregate(combined[,1], list(combined[,2]), max)[,2])
+  
+  #Plots
+  plot(rc, breaks=brk, col=colorRampPalette(c(&quot;#001a4d&quot;,&quot;#0066FF&quot;, &quot;yellow&quot;))(clusters), 
+       legend=F,yaxt=&#39;n&#39;,xaxt=&#39;n&#39;,frame = F, asp=1.5)
+  text(temp_coord$lon ,temp_coord$lat + 0.15,
+       substr(cities[i],1,regexpr(&quot;,&quot;,cities[i])-1), 
+       col=&quot;white&quot;, cex=1.25)
+  
+  rm(combined)
+}
+
+#Saving Geocodes
+write.csv(coords2014,file =&quot;data/coords2014.csv&quot; )
+###############################################################################################</code></pre>
+</div>
+<div id="creating-histogram-of-satellite-image-raster-data-to-vector-data-conversion" class="section level1">
+<h1>Creating Histogram of Satellite Image (Raster Data to Vector Data Conversion)</h1>
+<p>The codes below referenced (Chen, 2017) from the guidelines given by Department of Commerce will convert GeoTIFFs to vector data. Again, it will use a loop for both years.</p>
+<pre class="r"><code>##Histogram 2016
+histogram=function(shp,rast2016,i){
+  
+  #Extract one polygon based on index value i
+  polygon=shp[i,] #extract one polygon
+  extent=extent(polygon) #extract the polygon extent 
+  
+  #Raster extract
+  outer=crop(rast2016, extent) #extract raster by polygon extent
+  inner=mask(outer,polygon) #keeps values from raster extract that are within polygon
+  
+  #Convert cropped raster into a vector
+  #Specify coordinates
+  coords2016=expand.grid(seq(extent@xmin,extent@xmax,(extent@xmax-extent@xmin)/(ncol(inner)-1)),
+                        seq(extent@ymin,extent@ymax,(extent@ymax-extent@ymin)/(nrow(inner)-1)))
+  
+  #Convert raster into vector
+  data=as.vector(inner)
+  
+  #tidying data into dataframe
+  data=cbind(as.character(shp@data$CBSAFP[i]),coords2016, data) 
+  colnames(data)=c(&quot;GEOID&quot;,&quot;lon&quot;,&quot;lat&quot;,&quot;avg_rad&quot;) #note that 
+  data=data[!is.na(data$avg_rad),] #keep non-NA values only
+  
+  return(data)
+}
+
+##Histogram 2014
+histogram=function(shp,rast2014,i){
+  
+  #Extract one polygon based on index value i
+  polygon=shp[i,] #extract one polygon
+  extent=extent(polygon) #extract the polygon extent 
+  
+  #Raster extract
+  outer=crop(rast2014, extent) #extract raster by polygon extent
+  inner=mask(outer,polygon) #keeps values from raster extract that are within polygon
+  
+  #Convert cropped raster into a vector
+  #Specify coordinates
+  coords2014=expand.grid(seq(extent@xmin,extent@xmax,(extent@xmax-extent@xmin)/(ncol(inner)-1)),
+                         seq(extent@ymin,extent@ymax,(extent@ymax-extent@ymin)/(nrow(inner)-1)))
+  #Convert raster into vector
+  data=as.vector(inner)
+  
+  #package data in neat dataframe
+  data=cbind(as.character(shp@data$CBSAFP[i]),coords2014, data) 
+  colnames(data)=c(&quot;GEOID&quot;,&quot;lon&quot;,&quot;lat&quot;,&quot;avg_rad&quot;) #note that 
+  data=data[!is.na(data$avg_rad),] #keep non-NA values only
+  
+  return(data)
+}</code></pre>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
-<p>Some analytics along with the benchmark comparisons will be shown here at Second Draft.</p>
+<p>In order to obtain the necessary radiance statistics within the geographic boundaries specified, the five cities, the project will utilize two cores, limited by budget capacity, to speed up the extraction process.</p>
+<p>Once the extraction is done, it will have the sum of the total night lights with the relevant “GEOID”. Then, the process of merging it with the Metropolitan Statistical Area’s population statistic can be done.</p>
+<p>The process described is performed for both years to obtain the necessary statistics for plotting. Plots are done logarithmically due to large sum size and magnitude.</p>
+<pre class="r"><code>#Plotting
+#Scatterplot with Trendline of &quot;TNL and Population&quot;
+
+##Year 2016
+registerDoParallel(cores=2)
+extract2016=foreach(i=1:nrow(msa2016@data), .combine=rbind, .packages=&quot;raster&quot;) %dopar% {
+  data=histogram(msa2016,rast2016,i)
+  data.frame(GEOID = data$GEOID[1],sum = sum(data$avg_rad))
+}
+extract2016$GEOID=as.numeric(as.character(extract2016$GEOID))
+
+##Merge data
+merge2016=merge(extract2016, msa_pop2016[,c(&quot;CBSA&quot;,&quot;NAME&quot;,&quot;POPESTIMATE2016&quot;)],by.x=&quot;GEOID&quot;,by.y=&quot;CBSA&quot;)
+
+colnames(merge2016)=c(&quot;GEOID&quot;,&quot;TNL&quot;,&quot;MSA&quot;,&quot;Population&quot;)
+
+#Saving Large Extracted Data 2016
+write.csv(extract2016,file =&quot;data/extract2016.csv&quot; )
+
+#Plotting
+ggplot(merge2016, aes(log(TNL), log(Population))) +
+  geom_hex() +
+  geom_smooth(aes(color = log(TNL))) +
+  labs(title=&quot;Total Night Time Light vs Population 2016&quot;)
+    
+
+#---------------------------------------------------------------------------------------------------
+##Year 2014
+registerDoParallel(cores=2)
+extract2014=foreach(i=1:nrow(msa2014@data), .combine=rbind, .packages=&quot;raster&quot;) %dopar% {
+  data=histogram(msa2014,rast2014,i)
+  data.frame(GEOID = data$GEOID[1],sum = sum(data$avg_rad))
+}
+extract2014$GEOID=as.numeric(as.character(extract2014$GEOID))
+
+#Saving Large Extracted Data 2014  
+write.csv(extract2014,file =&quot;data/extract2014.csv&quot; )
+
+##Merge data
+merge2014=merge(extract2014, msa_pop2014[,c(&quot;CBSA&quot;,&quot;NAME&quot;,&quot;POPESTIMATE2014&quot;)],by.x=&quot;GEOID&quot;,by.y=&quot;CBSA&quot;)
+
+colnames(merge2014)=c(&quot;GEOID&quot;,&quot;TNL&quot;,&quot;MSA&quot;,&quot;Population&quot;)
+
+#Plotting
+ggplot(merge2014, aes(log(TNL), log(Population))) +
+  geom_hex() +
+  geom_smooth(aes(color = log(TNL))) +
+  labs(title=&quot;Total Night Time Light vs Population 2014&quot;)</code></pre>
+<div class="figure">
+<img src="plots/PLOT2014.png" alt="2014" />
+<p class="caption">2014</p>
+</div>
+<div class="figure">
+<img src="plots/PLOT2016.png" alt="2016" />
+<p class="caption">2016</p>
+</div>
 </div>
 <div id="conclusions" class="section level1">
 <h1>Conclusions</h1>
-<p>Broader Implication will be in Second Draft.</p>
+<p>The plotted chart clearly shows a good fit of using the sum of night lights data by DMSP OLS in relation to the population estimates by US Census Bureau, even on shrinking cities. The plot comparison between the two years show the trend line being sticky despite the drop in sum of night lights as the years goes by.</p>
+<p>Future studies with more time intervals and shorter time intervals, provided by better budget for computing capacity, would be aspirational to the better precision.</p>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>
-<p>Seto, K., &amp; Dhakal , S. (2014, ). Human Settlements, Infrastructure, and Spatial Planning. Human Settlements, Infrastructure, and Spatial Planning. Retrieved 2017, from <a href="http://www.ipcc.ch/pdf/assessment-report/ar5/wg3/ipcc_wg3_ar5_chapter12.pdf" class="uri">http://www.ipcc.ch/pdf/assessment-report/ar5/wg3/ipcc_wg3_ar5_chapter12.pdf</a></p>
+<p>Yi, K., Tani, H., Li, Q., Zhang, J., Guo, M., Bao, Y., Wang, X. and Li, J. (2014). Mapping and Evaluating the Urbanization Process in Northeast China Using DMSP/OLS Nighttime Light Data. Sensors, 14(2), pp.3207-3226.</p>
+<p>Ngdc.noaa.gov. (2017). NOAA/NGDC - Earth Observation Group - Defense Meteorological Satellite Progam, Boulder. [online] Available at: <a href="https://www.ngdc.noaa.gov/eog/viirs/download_dnb_composites.html" class="uri">https://www.ngdc.noaa.gov/eog/viirs/download_dnb_composites.html</a> .</p>
+<p>Chen, J. (2017). CommerceDataService/tutorial_viirs_part1. [online] GitHub. Available at: <a href="https://github.com/CommerceDataService/tutorial_viirs_part1" class="uri">https://github.com/CommerceDataService/tutorial_viirs_part1</a> .</p>
 </div>
 
 <!-- give the footer some space -->
