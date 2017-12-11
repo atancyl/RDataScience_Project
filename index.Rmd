@@ -8,63 +8,86 @@ bibiliography:
 ---
 
 # Introduction
-Night Lights data (Yi et al., 2014) has determined urbanization processes and its’ ability to track urban sprawl expansion, the urban environment, and its’ level of activity. While it may detect urban expansion, but is it an acceptable fit for shrinking cities? 
+Night Lights data (Yi et al., 2014) has been able to determine urbanization processes, and so far, we have witness expansion sets of analysis. Its’ ability to track urban sprawl expansion, the urban environment, and its’ level of activity are highly suitable. While it may detect urban expansion, the project will query its’ ability to query the contrary. 
 
-The NOAA’s National Centers for Environmental Information (NCEI) supports DoD's data archival for the DMSP sensors, which the U.S. Air Force Global Weather Central sends DMSP data to NCEI. Archival operation was established in March of 1992, and began receiving data on a daily basis in September of 1992.
+In context, the Defense Meteorological Satellite Program is a widely quoted data. It is a collection of two satellites that are solar coordinated, which one satellite is in a dawn - dusk orbit, and the second in a day - night orbit. The DMSP Operational Linescan System (OLS) data sets are utilized for this project. As stated on NOAA’s page, 
 
-The Defense Meteorological Satellite Program is a collection of two satellites that are solar coordinated, which one satellite is in a dawn - dusk orbit, and the second in a day - night orbit. The DMSP Operational Linescan System (OLS) data sets are utilized for this project. As stated on NOAA’s page, 
+> “The wide swath widths provide for global coverage four times a day: dawn, day, dusk, night.” 
 
-“The wide swath widths provide for global coverage four times a day: dawn, day, dusk, night.” 
+> “With sunlight eliminated, the light intensification makes it possible to detect city lights, gas flares, and fires.”
 
-“With sunlight eliminated, the light intensification makes it possible to detect city lights, gas flares, and fires.”
+As such, the project deem its’ specific capabilities for detection for statistical data collection fit for the usage of consideration.
 
-The population of a city determines its existence with its inhabitant’s activity (lights usage) measurement a good way to detect its’ vibrancy or inactivity. Therefore, Rust Belt cities offer intriguing insights of shrinking cities and its population.
+In reproducing the widely cited data in a standardized manner, relevant data sets were tracked down according to the inheritance after intragovernmental agencies merger. The NOAA’s National Centers for Environmental Information (NCEI) supports DoD's data archival for the DMSP sensors, which the U.S. Air Force Global Weather Central sends DMSP data to NCEI. Archival operation was established in March of 1992, and began receiving data on a daily basis in September of 1992. The mentioned time series and grandfathered collaboration across government agencies will be used for streamlining reproducible of the research, but in a compression manner.
+
+Crucially, a city’s existence relies on its’ inhabitants, and tracking of its activity can be intermediate through lights. The population’s activity of light usage measurement a good way to detect its’ vibrancy or inactivity. Many publications have the manner of understanding it through growth phases, but the project will attempt to achieve proof on concept in a contracting manner rather than expansion, in even timed series for more contrasting effects. Therefore, the Rust Belt cities offer intriguing insights of shrinking cities and its population.
 
 
-# Data Pulling
-The data (Ngdc.noaa.gov, 2017) set obtained for the project can be obtained as below:
+# Data {.tabset .tabset-fade}
+
+## Pulling
+Firstly, the satellite images, or raster data, are downloaded from NOAA’s web page to process locally. Global Cloud Free VIIRS Cloud Mask ((VCMCFG) with average stable radiance is selected. The local processing option was chosen due to resources rationale to computation and cost effectiveness. A biannual year was selected with the month of September chosen as constant for comparison. The years selected were 2014 and 2016. Data can be downloaded at:
+
 https://www.ngdc.noaa.gov/eog/viirs/download_dnb_composites.html
 
-Disclaimer: File Size is VERY HUGE! It is highly recommended that codes be ran locally!
+Secondly, the spatial projection coordinates for census shape files will be synchronized using World Geodetic System 1984 (WGS84) datum (Huang, B. 2017). The census shape files used are Core Based Statistical Areas Shape Files (CBSA) Data at 1:20,000,000 resolution. Data can be downloaded at:
 
-As for the focus of the project, the global cloud free VIIRS Cloud Mask product is selected (VCMCFG). The project will utilize the data for the month of September 2014 and September 2016. Reasons for selecting the data sets:
-i) Allowing an even time interval
-ii) Allowing changes to be more apparent biennially
+https://www.census.gov/geo/maps-data/data/cbf/cbf_msa.html
 
-The objective of the codes below is to load GeoTIFFs from NOAA (geo-referenced raster file) and MSA shape files from the US Census Bureau. The spatial projection coordinates for both data sets will be synchronized using World Geodetic System 1984 (WGS84) datum.
+Lastly, the population estimate files are downloaded for correlation, and formatted to characters, while assigned. The reason to use characters is to spur standardized readability when performing analysis. Data can be downloaded at:
 
-The codes below, saved as data pull.R script, will pull the data from the relevant directory once data sets have been downloaded:
+https://www2.census.gov/programs-surveys/popest/datasets/
+
 ```{r, echo=TRUE, eval=FALSE,}
+#Data Pulling
+#TIF Raster Data used:
+#NOAA/NGDC - Earth Observation Group - 
+#Defense Meteorological Satellite Progam, Boulder.
+#Available at: https://www.ngdc.noaa.gov/eog/viirs/download_dnb_composites.html
+#Downloaded for month September year 2014 and month September year 2016
+#Data Used in this project: Global Cloud Free VIIRS Cloud Mask product is selected (VCMCFG);
+#Renamed file to "092014avg_rade9.tif" and "092014avg_rade9.tif".
+#Saved at local "[path]/img" directory for local processing
+
 #Preliminary Libraries
 library(rgdal)
 
-#Set TIF images
-##################################################################################################################
-##Obtain a list of TIF files, load in the first file in list
+#Set TIF Raster images
+###############################################################################################################
+#Assigning TIF files to their respective years' variables
 
 ### Year 2014 TIF
 rast2014=raster(paste("img/092014avg_rade9.tif",sep=""))
 
 ### Year 2016 TIF
 rast2016=raster(paste("img/092016avg_rade9.tif",sep=""))
-  
-##Specify WGS84 as the projection of the raster file
-wgs84="+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
-projection(rast2014)=CRS(wgs84)
-projection(rast2016)=CRS(wgs84)
-###################################################################################################################
+
+#Census Vector Data
+#Using Census Core Based Statistical Areas Shape Files Data at 1:20,000,000 resolution
+#Datum spec is WGS 84
+#Downloaded for year 2014 and 2016
+#https://www.census.gov/geo/maps-data/data/cbf/cbf_msa.html
+
+##Population estimate for year 2014 and 2016 downloaded at:
+#https://www2.census.gov/programs-surveys/popest/datasets/
 
 #Set Census Data
-####################################################################################################################
-##Setting MSA Shapefile
+###############################################################################################################
+#Assigning MSA Shapefiles to respective years' variables
 msa2014=readOGR("censusdata/cb_2014_us_cbsa_20m.shp")
 msa2016=readOGR("censusdata/cb_2016_us_cbsa_20m.shp")
 
-##Synchronizing projection with TIF Files
+#Assign WGS84 as the datum projection variable
+wgs84="+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+
+#Using WGS84 as datum projection with census shape files
+#As detailed in:
+#https://books.google.com/books?isbn=0128047933
 projection(msa2014)=CRS(wgs84)
 projection(msa2016)=CRS(wgs84)
 
-##Convert MSA names to char
+###############################################################################################################
+#Format population estimate files' values from numbers to characters for streamlining readability
 msa_pop2014=read.csv("censusdata/cbsa-est2014-alldata.csv")
 msa_pop2014=msa_pop2014[msa_pop2014$LSAD=="Metropolitan Statistical Area",]
 msa_pop2014=msa_pop2014[order(msa_pop2014$POPESTIMATE2014),]
@@ -75,12 +98,10 @@ msa_pop2016=msa_pop2016[msa_pop2016$LSAD=="Metropolitan Statistical Area",]
 msa_pop2016=msa_pop2016[order(msa_pop2016$POPESTIMATE2016),]
 msa_pop2016$NAME=as.character(msa_pop2016$NAME)
 
-
 ```
+<br>
 
-# Data Wrangling
-As for tidying the data set, the project will utilize the libraries as commented in the codes. The data will be pulled from a script file as mentioned above. 
-
+## Selecting Cities
 The project has chosen five cities for illustration. Namely, they are, Chicago, Detroit, Flint, MI, Cleveland, OH, and Buffalo. 
 ```{r, echo=TRUE, eval=FALSE}
 #Load libraries
@@ -93,11 +114,7 @@ The project has chosen five cities for illustration. Namely, they are, Chicago, 
   library(ggmap)
   library(ggplot2)
 }
-#####################################################################################
 
-#Data
-source("code/datapull.R")
-#####################################################################################
 
 #Selecting Cities
 cities=c("Chicago, IL", "Detroit, MI", "Flint, MI", "Cleveland, OH", "Buffalo, NY")
@@ -108,12 +125,10 @@ par(mai=c(0,0,0,0),mfrow = c(3,2),bg='#001a4d', bty='n')
 
 
 ```
+<br>
 
-
-# Visualization
-The visualization process will use a loop function for both years to geocode and will be assigned with relevant variables. 
-
-The loop function works by utilizing "foreach"" library. It will run the cities that were selected above.
+# Methodology: Visualization of the Cities
+As for tidying the data set, the project will utilize the libraries as commented in the codes. The loop function works by utilizing "foreach library. It will run the cities that were selected above.The visualization process will use a loop function for both years to geocode and will be assigned with relevant variables. Namely the process order is as follow:
 
 Firstly in the loop function,  the cities will be geocoded and assigned temporarily before merged.
 
@@ -123,49 +138,11 @@ Thirdly, the referenced codes (Chen, 2017) will visually inspect rasters by colo
 
 Lastly, the sampled radiance level will be plotted to reveal visually of the night lights in relevant cities.
 
-The geocoded cities coordinates are also saved to prevent frequent queries through the ggpmap library as Google's Term of Policies limits queries.
+The geocoded cities coordinates are also saved to prevent frequent queries through the ggpmap library as Google's Term of Policies limits queries. As for the files displayed, they are PNG files generated from cropping the bounding box parameters with the nightlights dotted according to spatial projection referenced.
 
-![2014](plots/Year2014.png)
+As for faster website loading, the visualization loads the PNG files generated rather than running the processing of visualization that is computational intensive.
 
-![2016](plots/Year2016.png)
 ```{r, echo=TRUE, eval=FALSE}
-#Visualizing Cities for Year 2016
-coords2016=data.frame()
-
-##Loop
-for(i in 1:length(cities)){
-  
-  ##Coords
-  temp_coord=geocode(override_limit = TRUE, cities[i], source = c("google", "dsk"), key = "AIzaSyBRzBKmnnK9vwKDrqSBR6olexFThQNWU-8")
-  coords2016=rbind(coords2016,temp_coord)
-  
-  #Bounding Box
-  boundbox=extent(temp_coord$lon - 1, temp_coord$lon + 1,
-              temp_coord$lat - 0.25, temp_coord$lat + 0.25)
-  
-  #Pasting Boundbox to Raster
-  rc=crop(rast2016, boundbox)    
-  
-  ##Rescale brackets
-  sampled=as.vector(rc)
-  clusters=15
-  clust=kmeans(sampled,clusters)$cluster
-  combined=as.data.frame(cbind(sampled,clust))
-  brk=sort(aggregate(combined[,1], list(combined[,2]), max)[,2])
-  
-  #Plots
-  plot(rc, breaks=brk, col=colorRampPalette(c("#001a4d","#0066FF", "yellow"))(clusters), 
-       legend=F,yaxt='n',xaxt='n',frame = F, asp=1.5)
-  text(temp_coord$lon ,temp_coord$lat + 0.15,
-       substr(cities[i],1,regexpr(",",cities[i])-1), 
-       col="white", cex=1.25)
-  
-  rm(combined)
-}
-
-#Saving Geocodes  
-write.csv(coords2016,file ="data/coords2016.csv" )
-#########################################################################################
 #Visualizing Cities for Year 2014
 ########################################################################################
 coords2014=data.frame()
@@ -204,11 +181,57 @@ for(i in 1:length(cities)){
 #Saving Geocodes
 write.csv(coords2014,file ="data/coords2014.csv" )
 ###############################################################################################
-
 ```
 
 
-# Creating Histogram of Satellite Image (Raster Data to Vector Data Conversion)
+![2014](plots/Year2014.png)
+
+```{r, echo=TRUE, eval=FALSE}
+#Visualizing Cities for Year 2016
+coords2016=data.frame()
+
+##Loop
+for(i in 1:length(cities)){
+  
+  ##Coords
+  temp_coord=geocode(override_limit = TRUE, cities[i], source = c("google", "dsk"), key = "AIzaSyBRzBKmnnK9vwKDrqSBR6olexFThQNWU-8")
+  coords2016=rbind(coords2016,temp_coord)
+  
+  #Bounding Box
+  boundbox=extent(temp_coord$lon - 1, temp_coord$lon + 1,
+              temp_coord$lat - 0.25, temp_coord$lat + 0.25)
+  
+  #Pasting Boundbox to Raster
+  rc=crop(rast2016, boundbox)    
+  
+  ##Rescale brackets
+  sampled=as.vector(rc)
+  clusters=15
+  clust=kmeans(sampled,clusters)$cluster
+  combined=as.data.frame(cbind(sampled,clust))
+  brk=sort(aggregate(combined[,1], list(combined[,2]), max)[,2])
+  
+  #Plots
+  plot(rc, breaks=brk, col=colorRampPalette(c("#001a4d","#0066FF", "yellow"))(clusters), 
+       legend=F,yaxt='n',xaxt='n',frame = F, asp=1.5)
+  text(temp_coord$lon ,temp_coord$lat + 0.15,
+       substr(cities[i],1,regexpr(",",cities[i])-1), 
+       col="white", cex=1.25)
+  
+  rm(combined)
+}
+
+#Saving Geocodes  
+write.csv(coords2016,file ="data/coords2016.csv" )
+#########################################################################################
+
+
+```
+
+![2016](plots/Year2016.png)
+
+
+# Methodology: Histogram of Satellite Image (Raster Data to Vector Data Conversion)
 The codes below referenced (Chen, 2017) from the guidelines given by Department of Commerce will convert GeoTIFFs to vector data. Again, it will use a loop for both years.
 ```{r, echo=TRUE, eval=FALSE}
 ##Histogram 2016
@@ -265,14 +288,12 @@ histogram=function(shp,rast2014,i){
 }
 ```
 
+# Methodology: Extracting CBSA Geocoded Areas for Population and Totalling Night Lights from Radiance Data 
+In order to obtain the necessary radiance statistics within the geographic boundaries specified, the five cities, the project will utilize two cores (process intensive), limited by resource capacity, to speed up the extraction process.
 
+Once the extraction is done, it will have the sum of the total night lights with the relevant "GEOID", in this case, the CBSA areas selected. Then, the process of merging it with the Metropolitan Statistical Area's population statistic can be done.
 
-# Results
-In order to obtain the necessary radiance statistics within the geographic boundaries specified, the five cities, the project will utilize two cores, limited by budget capacity, to speed up the extraction process.
-
-Once the extraction is done, it will have the sum of the total night lights with the relevant "GEOID". Then, the process of merging it with the Metropolitan Statistical Area's population statistic can be done.
-
-The process described is performed for both years to obtain the necessary statistics for plotting. Plots are done logarithmically due to large sum size and magnitude.
+The process described is performed for both years recursively to obtain the necessary statistics for plotting. 
 ```{r, echo=TRUE, eval=FALSE}
 #Plotting
 #Scatterplot with Trendline of "TNL and Population"
@@ -293,14 +314,8 @@ colnames(merge2016)=c("GEOID","TNL","MSA","Population")
 #Saving Large Extracted Data 2016
 write.csv(extract2016,file ="data/extract2016.csv" )
 
-#Plotting
-ggplot(merge2016, aes(log(TNL), log(Population))) +
-  geom_hex() +
-  geom_smooth(aes(color = log(TNL))) +
-  labs(title="Total Night Time Light vs Population 2016")
     
 
-#---------------------------------------------------------------------------------------------------
 ##Year 2014
 registerDoParallel(cores=2)
 extract2014=foreach(i=1:nrow(msa2014@data), .combine=rbind, .packages="raster") %dopar% {
@@ -317,31 +332,49 @@ merge2014=merge(extract2014, msa_pop2014[,c("CBSA","NAME","POPESTIMATE2014")],by
 
 colnames(merge2014)=c("GEOID","TNL","MSA","Population")
 
-#Plotting
-ggplot(merge2014, aes(log(TNL), log(Population))) +
-  geom_hex() +
-  geom_smooth(aes(color = log(TNL))) +
-  labs(title="Total Night Time Light vs Population 2014")
+
 
 
 
 ```
 
+
+
+#Results
+Plots ,which are scatterplots, are done logarithmically due to large sum size and magnitude for Total Night Lights (TNL) against Population.
+```{r, echo=TRUE, eval=FALSE}
+#Scatterplot with Trendline of "TNL and Population"
+#Plotting for year 2014 
+ggplot(merge2014, aes(log(TNL), log(Population))) +
+  geom_hex() +
+  geom_smooth(aes(color = log(TNL))) +
+  labs(title="Total Night Time Light vs Population 2014")
+```
 ![2014](plots/PLOT2014.png)
 
+
+```{r, echo=TRUE, eval=FALSE}
+#Plotting for year 2016
+ggplot(merge2016, aes(log(TNL), log(Population))) +
+  geom_hex() +
+  geom_smooth(aes(color = log(TNL))) +
+  labs(title="Total Night Time Light vs Population 2016")
+```
 ![2016](plots/PLOT2016.png)
 
-
-
 # Conclusions
+Total night lights in summation is a good proxy for estimating population. It is possible to merge geographically relevant areas quickly with satellite images accurately. However, the process is computationally intensive, but significant. As for achieving the objective of the project, it has proven itself as a concept. The merger of the satellite image's radiance with geocoded base maps allows quick mapping of the selected cities with their radiance level in an overall manner for comparison across time in montages.
+
 The plotted chart clearly shows a good fit of using the sum of night lights data by DMSP OLS in relation to the population estimates by US Census Bureau, even on shrinking cities. The plot comparison between the two years show the trend line being sticky despite the drop in sum of night lights as the years goes by. 
 
-Future studies with more time intervals and shorter time intervals, provided by better budget for computing capacity, would be aspirational to the better precision. 
+Future studies with more time intervals and shorter time intervals would yield better detailed visualization and more insights. Provided that there is better resources for computing capacity, dynamic visualization would be inspirational for better scale and precision. 
 
 
 # References
 Yi, K., Tani, H., Li, Q., Zhang, J., Guo, M., Bao, Y., Wang, X. and Li, J. (2014). Mapping and Evaluating the Urbanization Process in Northeast China Using DMSP/OLS Nighttime Light Data. Sensors, 14(2), pp.3207-3226.
 
-Ngdc.noaa.gov. (2017). NOAA/NGDC - Earth Observation Group - Defense Meteorological Satellite Progam, Boulder. [online] Available at: https://www.ngdc.noaa.gov/eog/viirs/download_dnb_composites.html .
+Ngdc.noaa.gov. (2017). NOAA/NGDC - Earth Observation Group - Defense Meteorological Satellite Program, Boulder. [online] Available at: https://www.ngdc.noaa.gov/eog/viirs/download_dnb_composites.html .
+
+Huang, B. 2017, Comprehensive Geographic Information Systems, Elsevier, US.
 
 Chen, J. (2017). CommerceDataService/tutorial_viirs_part1. [online] GitHub. Available at: https://github.com/CommerceDataService/tutorial_viirs_part1 .
